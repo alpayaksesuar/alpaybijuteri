@@ -244,8 +244,8 @@ function checkOrderPage() {
     const note = decodeURIComponent(parts[3] || '');
     const itemsRaw = (parts[4] || '').split(',').filter(Boolean);
     const items = itemsRaw.map(x => {
-      const [id, qty] = x.split(':');
-      return { id, qty: parseInt(qty) || 1 };
+      const parts = x.split(':');
+      return { id: parts[0], qty: parseInt(parts[1]) || 1, color: decodeURIComponent(parts[2] || '') };
     });
     showOrderPage({ no, name, phone, note, items });
     return true;
@@ -317,7 +317,7 @@ async function fetchImages(id) {
 function thumb(id, w=400) { return `https://lh3.googleusercontent.com/d/${id}=w${w}`; }
 
 const CACHE_KEY = 'alpay_products_v1';
-const CACHE_TTL = 24 * 60 * 60 * 1000;
+const CACHE_TTL = 60 * 60 * 1000; // 1 saat
 
 async function loadDrive() {
   try {
@@ -500,6 +500,7 @@ function addToCartDirect(id, color) {
   if (ex) ex.qty++;
   else cart.push({ ...p, cartId, name: displayName, color, qty: 1 });
   updateCartUI();
+  saveCart();
   openCart();
 }
 function updateCartUI() {
@@ -524,9 +525,10 @@ function updateCartUI() {
     </div>
   `).join('');
 }
-function setQty(cartId,val){const item=cart.find(c=>c.cartId===cartId);if(!item)return;if(!val||val<1)removeItem(cartId);else{item.qty=val;updateCartUI();}}
-function changeQty(cartId,delta){const item=cart.find(c=>c.cartId===cartId);if(!item)return;item.qty+=delta;if(item.qty<=0)removeItem(cartId);else updateCartUI();}
-function removeItem(cartId){cart=cart.filter(c=>c.cartId!==cartId);updateCartUI();}
+function saveCart(){try{sessionStorage.setItem('alpay_cart',JSON.stringify(cart));}catch(e){}}
+function setQty(cartId,val){const item=cart.find(c=>c.cartId===cartId);if(!item)return;if(!val||val<1)removeItem(cartId);else{item.qty=val;updateCartUI();saveCart();}}
+function changeQty(cartId,delta){const item=cart.find(c=>c.cartId===cartId);if(!item)return;item.qty+=delta;if(item.qty<=0)removeItem(cartId);else{updateCartUI();saveCart();}}
+function removeItem(cartId){cart=cart.filter(c=>c.cartId!==cartId);updateCartUI();saveCart();}
 function openCart(){document.getElementById('cartOverlay').classList.add('active');document.getElementById('cartSidebar').classList.add('active');}
 function closeCart(){document.getElementById('cartOverlay').classList.remove('active');document.getElementById('cartSidebar').classList.remove('active');}
 
@@ -547,7 +549,7 @@ async function sendWhatsApp() {
   const totalQty=cart.reduce((s,c)=>s+c.qty,0);
 
   // Sipariş URL'i oluştur
-  const itemsParam = cart.map(item=>`${item.id}:${item.qty}`).join(',');
+  const itemsParam = cart.map(item=>`${item.id}:${item.qty}:${encodeURIComponent(item.color||'')}`).join(',');
   const longUrl = `${SITE_URL}/?s=${orderNo}|${encodeURIComponent(name)}|${encodeURIComponent(phone)}|${encodeURIComponent(note)}|${itemsParam}`;
 
   // TinyURL ile kısalt
@@ -566,6 +568,7 @@ async function sendWhatsApp() {
   msg += `*Ürünler (${totalQty} kalem):*\n`;
   cart.forEach((item,i) => {
     msg += `\n${i+1}. *${item.name}* x${item.qty}\n`;
+    if(item.color) msg += `   🎨 ${item.color}\n`;
     msg += `   📂 ${item.subCategory||item.category}\n`;
     msg += `   🖼 https://drive.google.com/file/d/${item.id}/view\n`;
   });
@@ -580,6 +583,7 @@ async function sendWhatsApp() {
   // Sepeti temizle
   cart = [];
   updateCartUI();
+  try{sessionStorage.removeItem('alpay_cart');}catch(e){}
   document.getElementById('nameInput').value = '';
   document.getElementById('phoneInput').value = '';
   document.getElementById('noteInput').value = '';
@@ -592,6 +596,15 @@ document.getElementById('installBtn').addEventListener('click', async()=>{if(!de
 function dismissInstall(){document.getElementById('installBanner').classList.remove('active');}
 
 // --- INIT ---
+// Sepeti sessionStorage'dan yükle
+try {
+  const saved = sessionStorage.getItem('alpay_cart');
+  if (saved) {
+    cart = JSON.parse(saved);
+    updateCartUI();
+  }
+} catch(e) {}
+
 if (!checkOrderPage()) loadDrive();
 </script>
 </body>
