@@ -96,13 +96,13 @@ header { position:sticky; top:0; z-index:100; background:var(--white); border-bo
 .op-info-item label { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); display:block; margin-bottom:3px; }
 .op-info-item span { font-size:14px; }
 .op-section-title { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); padding:16px 20px 10px; border-bottom:1px solid var(--border); }
-.op-item { display:flex; gap:14px; padding:14px 20px; border-bottom:1px solid var(--light); align-items:center; }
-.op-item img { width:90px; height:90px; object-fit:cover; border:1px solid var(--border); flex-shrink:0; }
+.op-item { display:flex; gap:16px; padding:16px 20px; border-bottom:1px solid var(--light); align-items:center; background:white; }
+.op-item img { width:110px; height:110px; object-fit:cover; border:1px solid var(--border); flex-shrink:0; }
 .op-item-info { flex:1; }
-.op-item-name { font-size:14px; margin-bottom:4px; }
-.op-item-cat { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--gray); margin-bottom:6px; }
+.op-item-name { font-size:15px; margin-bottom:6px; font-weight:400; }
+.op-item-cat { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--gray); margin-bottom:8px; }
 .op-item-link a { font-size:11px; color:var(--gold); text-decoration:none; }
-.op-item-qty { font-size:26px; font-family:'Cormorant Garamond',serif; min-width:44px; text-align:center; flex-shrink:0; }
+.op-item-qty { font-size:32px; font-family:'Cormorant Garamond',serif; min-width:52px; text-align:center; flex-shrink:0; color:var(--black); background:var(--light); padding:8px; border:1px solid var(--border); }
 .op-footer { padding:16px 20px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
 .op-note { margin:0 20px 16px; padding:14px 16px; border:1px solid var(--border); }
 .op-note-label { font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--gray); margin-bottom:6px; }
@@ -316,10 +316,30 @@ async function fetchImages(id) {
 }
 function thumb(id, w=400) { return `https://lh3.googleusercontent.com/d/${id}=w${w}`; }
 
+const CACHE_KEY = 'alpay_products_v1';
+const CACHE_TTL = 24 * 60 * 60 * 1000;
+
 async function loadDrive() {
   try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { data, ts } = JSON.parse(cached);
+      if (Date.now() - ts < CACHE_TTL && data.length) {
+        allProducts = data;
+        buildCats();
+        renderProducts();
+        fetchFromDrive(true);
+        return;
+      }
+    }
+  } catch(e) {}
+  await fetchFromDrive(false);
+}
+
+async function fetchFromDrive(silent) {
+  try {
     const topFolders = await fetchFolders(ROOT_FOLDER_ID);
-    if (!topFolders.length) { document.getElementById('productGrid').innerHTML='<div class="loading">Klasör bulunamadı.</div>'; return; }
+    if (!topFolders.length) { if(!silent) document.getElementById('productGrid').innerHTML='<div class="loading">Klasör bulunamadı.</div>'; return; }
     const results = await Promise.all(topFolders.map(async folder => {
       const subs = await fetchFolders(folder.id);
       if (subs.length) {
@@ -334,10 +354,10 @@ async function loadDrive() {
       }
     }));
     allProducts = results.flat();
-    buildCats();
-    renderProducts();
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data: allProducts, ts: Date.now() })); } catch(e) {}
+    if (!silent) { buildCats(); renderProducts(); }
   } catch(e) {
-    document.getElementById('productGrid').innerHTML = `<div class="loading">Yüklenemedi: ${e.message}</div>`;
+    if (!silent) document.getElementById('productGrid').innerHTML = `<div class="loading">Yüklenemedi: ${e.message}</div>`;
   }
 }
 
@@ -530,10 +550,10 @@ async function sendWhatsApp() {
   const itemsParam = cart.map(item=>`${item.id}:${item.qty}`).join(',');
   const longUrl = `${SITE_URL}/?s=${orderNo}|${encodeURIComponent(name)}|${encodeURIComponent(phone)}|${encodeURIComponent(note)}|${itemsParam}`;
 
-  // is.gd ile kısalt - direkt yönlendirir, araya sayfa girmez
+  // TinyURL ile kısalt
   let orderLink = longUrl;
   try {
-    const res = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(longUrl)}`);
+    const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
     if (res.ok) {
       const short = await res.text();
       if (short.startsWith('http')) orderLink = short;
@@ -556,6 +576,14 @@ async function sendWhatsApp() {
   btn.innerHTML = '💬 WhatsApp ile Sipariş Ver';
 
   window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+
+  // Sepeti temizle
+  cart = [];
+  updateCartUI();
+  document.getElementById('nameInput').value = '';
+  document.getElementById('phoneInput').value = '';
+  document.getElementById('noteInput').value = '';
+  closeCart();
 }
 
 // --- PWA ---
