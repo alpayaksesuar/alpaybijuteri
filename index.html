@@ -325,12 +325,12 @@ async function loadDrive() {
       if (subs.length) {
         const sr = await Promise.all(subs.map(async sub => {
           const imgs = await fetchImages(sub.id);
-          return imgs.map(img => ({ id:img.id, name:img.name.replace(/\.\w+$/,'').replace(/[-_]/g,' '), category:folder.name, subCategory:sub.name, thumb:thumb(img.id), full:thumb(img.id,800) }));
+          return imgs.map(img => ({ id:img.id, name:img.name.replace(/\.\w+$/,''), category:folder.name, subCategory:sub.name, thumb:thumb(img.id), full:thumb(img.id,800) }));
         }));
         return sr.flat();
       } else {
         const imgs = await fetchImages(folder.id);
-        return imgs.map(img => ({ id:img.id, name:img.name.replace(/\.\w+$/,'').replace(/[-_]/g,' '), category:folder.name, subCategory:null, thumb:thumb(img.id), full:thumb(img.id,800) }));
+        return imgs.map(img => ({ id:img.id, name:img.name.replace(/\.\w+$/,''), category:folder.name, subCategory:null, thumb:thumb(img.id), full:thumb(img.id,800) }));
       }
     }));
     allProducts = results.flat();
@@ -416,15 +416,15 @@ let pendingProductId = null;
 let selectedColor = null;
 
 function parseColors(name) {
-  // "Kolye Model-Kırmızı-Mavi-Yeşil" -> ["Kırmızı","Mavi","Yeşil"]
+  // "65TL PRT602000007-Kırmızı-Siyah-Pembe" -> ["Kırmızı","Siyah","Pembe"]
   const parts = name.split('-');
   if (parts.length < 2) return [];
   return parts.slice(1).map(c => c.trim()).filter(Boolean);
 }
 
 function cleanName(name) {
-  // Renkler çıkarılmış ürün adı
-  return name.split('-')[0].trim();
+  // Renkler ve alt çizgi temizlenmiş ürün adı
+  return name.split('-')[0].trim().replace(/_/g, ' ');
 }
 
 function openColorModal(id) {
@@ -530,10 +530,10 @@ async function sendWhatsApp() {
   const itemsParam = cart.map(item=>`${item.id}:${item.qty}`).join(',');
   const longUrl = `${SITE_URL}/?s=${orderNo}|${encodeURIComponent(name)}|${encodeURIComponent(phone)}|${encodeURIComponent(note)}|${itemsParam}`;
 
-  // TinyURL ile kısalt
+  // is.gd ile kısalt - direkt yönlendirir, araya sayfa girmez
   let orderLink = longUrl;
   try {
-    const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
+    const res = await fetch(`https://is.gd/create.php?format=simple&url=${encodeURIComponent(longUrl)}`);
     if (res.ok) {
       const short = await res.text();
       if (short.startsWith('http')) orderLink = short;
