@@ -26,9 +26,9 @@ header { position:sticky; top:0; z-index:100; background:var(--white); border-bo
 .search-bar.active { display:block; }
 .search-bar input { width:100%; border:1px solid var(--border); padding:8px 12px; font-family:'Jost',sans-serif; font-size:14px; outline:none; background:var(--light); }
 
-.cat-row { display:flex; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--border); }
+.cat-row { display:flex; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--border); justify-content:center; }
 .cat-row::-webkit-scrollbar { display:none; }
-.sub-row { display:none; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--border); background:var(--light); }
+.sub-row { display:none; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--border); background:var(--light); justify-content:center; }
 .sub-row.active { display:flex; }
 .sub-row::-webkit-scrollbar { display:none; }
 .cat-btn { flex-shrink:0; padding:10px 16px; border:none; background:none; cursor:pointer; font-family:'Jost',sans-serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); border-bottom:2px solid transparent; white-space:nowrap; transition:all 0.2s; }
@@ -38,19 +38,19 @@ header { position:sticky; top:0; z-index:100; background:var(--white); border-bo
 
 .products-container { padding:16px; }
 .section-title { font-family:'Cormorant Garamond',serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--gray); margin-bottom:16px; font-style:italic; }
-.product-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:2px; }
+.product-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1px; width:100%; }
 @media(min-width:600px){ .product-grid { grid-template-columns:repeat(3,1fr); } }
 
-.product-card { background:var(--white); cursor:pointer; position:relative; }
+.product-card { background:var(--white); cursor:pointer; position:relative; min-width:0; overflow:hidden; }
 .product-img-wrap { position:relative; aspect-ratio:1; background:var(--light); overflow:hidden; }
 .product-img-wrap img { width:100%; height:100%; object-fit:cover; transition:transform 0.4s; }
 .product-card:hover .product-img-wrap img { transform:scale(1.04); }
 .add-to-cart-btn { position:absolute; bottom:0; left:0; right:0; background:rgba(26,26,26,0.85); color:white; border:none; padding:10px; font-family:'Jost',sans-serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; opacity:0; transition:opacity 0.2s; }
 .product-card:hover .add-to-cart-btn { opacity:1; }
 @media(hover:none){ .add-to-cart-btn { opacity:1; } }
-.product-info { padding:8px 4px 12px; }
-.product-name { font-size:12px; color:var(--black); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.product-cat { font-size:10px; color:var(--gray); text-transform:uppercase; letter-spacing:0.5px; }
+.product-info { padding:6px 4px 8px; min-width:0; }
+.product-name { font-size:11px; color:var(--black); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+.product-cat { font-size:9px; color:var(--gray); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 .loading { text-align:center; padding:60px 20px; color:var(--gray); font-size:13px; }
 .spinner { width:24px; height:24px; border:1px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 16px; }
