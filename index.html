@@ -152,7 +152,7 @@ header { position:sticky; top:0; z-index:100; background:var(--white); border-bo
       <div class="header-tagline">Alpay Bijuteri &nbsp;|&nbsp; pretty accessory</div>
     </div>
     <div class="header-right">
-      <button class="cart-btn" onclick="openCart()">🛍<span class="cart-count" id="cartCount">0</span></button>
+      <button class="cart-btn" onclick="openCart()"><div style="display:flex;flex-direction:column;align-items:center;gap:1px"><span>🛍<span class="cart-count" id="cartCount">0</span></span><span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;font-family:'Jost',sans-serif;color:var(--black);">Sepetim</span></div></button>
     </div>
   </header>
   <div class="search-bar" id="searchBar">
@@ -203,6 +203,10 @@ header { position:sticky; top:0; z-index:100; background:var(--white); border-bo
     <button class="close-cart" onclick="closeCart()">×</button>
   </div>
   <div class="cart-items" id="cartItems"><div class="cart-empty">Sepetiniz boş</div></div>
+  <div id="cartTotal" style="padding:12px 20px;border-top:1px solid var(--border);display:none;justify-content:space-between;align-items:center;">
+    <span style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gray);">Toplam</span>
+    <span style="font-size:18px;font-family:'Cormorant Garamond',serif;color:var(--gold);" id="cartTotalAmount"></span>
+  </div>
   <div class="cart-bottom">
     <div class="cart-form">
       <input type="text" id="nameInput" placeholder="İsim Soyisim" autocomplete="name">
@@ -262,7 +266,8 @@ async function showOrderPage(order) {
     <div class="op-info-item"><label>Telefon</label><span>${order.phone}</span></div>
     <div class="op-info-item"><label>Toplam</label><span>${totalQty} ürün</span></div>
   `;
-  document.getElementById('opTotal').textContent = `${totalQty} ürün`;
+  const totalPrice = order.items.reduce((s,i) => s + (i.price ? i.price * i.qty : 0), 0);
+  document.getElementById('opTotal').textContent = totalPrice > 0 ? `${totalQty} ürün — ${totalPrice}₺` : `${totalQty} ürün`;
   if (order.note) {
     document.getElementById('opNote').innerHTML = `
       <div class="op-note">
@@ -292,7 +297,10 @@ async function showOrderPage(order) {
           ${item.color ? `<div style="margin:4px 0 6px;font-size:13px;color:#b8860b;font-weight:400;">🎨 ${item.color}</div>` : ''}
           <div class="op-item-link"><a href="https://drive.google.com/file/d/${item.id}/view" target="_blank">Drive'da Görüntüle →</a></div>
         </div>
-        <div class="op-item-qty">×${item.qty}</div>
+        <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+          <div class="op-item-qty">×${item.qty}</div>
+          ${item.price ? `<div style="font-size:12px;color:var(--gold);margin-top:4px;">${item.price * item.qty}₺</div>` : ''}
+        </div>
       </div>
     `;
   }));
@@ -375,9 +383,9 @@ async function fetchFromDrive(silent) {
 
 // --- KATEGORİLER ---
 function buildCats() {
-  const cats = ['Tümü', ...new Set(allProducts.map(p=>p.category))];
-  document.getElementById('catTabs').innerHTML = cats.map(c =>
-    `<button class="cat-btn ${c==='Tümü'?'active':''}" onclick="selectCat('${c}')">${c}</button>`
+  const cats = [...new Set(allProducts.map(p=>p.category))];
+  document.getElementById('catTabs').innerHTML = cats.map((c,i) =>
+    `<button class="cat-btn ${i===0?'active':''}" onclick="selectCat('${c}')">${c}</button>`
   ).join('');
 }
 function buildSubCats(cat) {
@@ -398,6 +406,12 @@ function selectCat(cat) {
   document.getElementById('searchInput').value='';
   renderProducts();
 }
+function selectAll() {
+  currentCategory='__ALL__'; currentSubCategory=null;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  buildSubCats('Tümü');
+  renderProducts();
+}
 function selectSub(sub) {
   currentSubCategory = sub==='Tümü'?null:sub;
   document.querySelectorAll('.sub-btn').forEach(b=>b.classList.remove('active'));
@@ -408,7 +422,7 @@ function selectSub(sub) {
 // --- RENDER ---
 function renderProducts() {
   const search = document.getElementById('searchInput').value;
-  let list = currentCategory==='Tümü' ? allProducts : allProducts.filter(p=>p.category===currentCategory);
+  let list = (currentCategory==='Tümü'||currentCategory==='__ALL__') ? allProducts : allProducts.filter(p=>p.category===currentCategory);
   if (currentSubCategory) list = list.filter(p=>p.subCategory===currentSubCategory);
   if (search) { const ns = normalizeText(search); list = list.filter(p=>normalizeText(p.name).includes(ns)||normalizeText(p.category).includes(ns)); }
   const label = currentSubCategory||(currentCategory==='Tümü'?'Tüm Ürünler':currentCategory);
@@ -421,8 +435,11 @@ function renderProducts() {
         <button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${p.id}')">+ Sepete Ekle</button>
       </div>
       <div class="product-info">
-        <div class="product-name">${p.name}</div>
-        <div class="product-cat">${p.subCategory||p.category}</div>
+        <div class="product-name">${cleanName(p.name)}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="product-cat">${p.subCategory||p.category}</div>
+          ${parsePrice(p.name) ? `<div style="font-size:12px;font-weight:400;color:var(--gold);">${parsePrice(p.name)}₺</div>` : ''}
+        </div>
       </div>
     </div>
   `).join('');
@@ -453,6 +470,11 @@ function lbAdd() { if(currentLbId) { addToCart(currentLbId); closeLightbox(); } 
 let pendingProductId = null;
 let selectedColor = null;
 
+function parsePrice(name) {
+  const match = name.match(/^(\d+(?:[.,]\d+)?)\s*(?:TL|tl|₺)/i);
+  return match ? parseFloat(match[1].replace(',','.')) : null;
+}
+
 function parseColors(name) {
   // "65TL PRT602000007-Kırmızı-Siyah-Pembe" -> ["Kırmızı","Siyah","Pembe"]
   const parts = name.split('-');
@@ -461,8 +483,8 @@ function parseColors(name) {
 }
 
 function cleanName(name) {
-  // Renkler ve alt çizgi temizlenmiş ürün adı
-  return name.split('-')[0].trim().replace(/_/g, ' ');
+  // Fiyat ve renkler çıkarılmış ürün adı
+  return name.split('-')[0].trim().replace(/_/g, ' ').replace(/^\d+(?:[.,]\d+)?\s*(?:TL|tl|₺)\s*/i, '');
 }
 
 function openColorModal(id) {
@@ -514,25 +536,40 @@ function addToCartDirect(id, color) {
   if (!p) return;
   const displayName = color ? `${cleanName(p.name)} — ${color}` : cleanName(p.name);
   const cartId = color ? `${id}_${color}` : id;
+  const price = parsePrice(p.name);
   const ex = cart.find(c => c.cartId === cartId);
   if (ex) ex.qty++;
-  else cart.push({ ...p, cartId, name: displayName, color, qty: 1 });
+  else cart.push({ ...p, cartId, name: displayName, color, price, qty: 1 });
   updateCartUI();
   saveCart();
-  openCart();
 }
+
 function updateCartUI() {
   const total=cart.reduce((s,c)=>s+c.qty,0);
   const cnt=document.getElementById('cartCount');
   cnt.textContent=total; cnt.style.display=total>0?'flex':'none';
   const el=document.getElementById('cartItems');
   if(!cart.length){el.innerHTML='<div class="cart-empty">Sepetiniz boş</div>';return;}
+  // Toplam hesapla
+  const totalPrice = cart.reduce((s,c) => s + (c.price ? c.price * c.qty : 0), 0);
+  const totalEl = document.getElementById('cartTotal');
+  const totalAmountEl = document.getElementById('cartTotalAmount');
+  if (totalPrice > 0) {
+    totalEl.style.display = 'flex';
+    totalAmountEl.textContent = totalPrice.toFixed(0) + '₺';
+  } else {
+    totalEl.style.display = 'none';
+  }
+
   el.innerHTML=cart.map(item=>`
     <div class="cart-item">
       <img class="cart-item-img" src="${item.thumb}" alt="${item.name}" onclick="openLightbox('${item.id}')">
       <div class="cart-item-info">
         <div class="cart-item-name">${item.name}</div>
-        <div class="cart-item-cat">${item.subCategory||item.category}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div class="cart-item-cat" style="margin-bottom:0;">${item.subCategory||item.category}</div>
+          ${item.price ? `<div style="font-size:13px;color:var(--gold);">${(item.price * item.qty).toFixed(0)}₺</div>` : ''}
+        </div>
         <div class="cart-item-qty">
           <button class="qty-btn" onclick="changeQty('${item.cartId}',-1)">−</button>
           <input type="number" class="qty-input" value="${item.qty}" min="1" onchange="setQty('${item.cartId}',parseInt(this.value))" onclick="this.select()">
@@ -569,7 +606,7 @@ async function sendWhatsApp() {
   // Sipariş verisini JSON+base64 ile kodla - TinyURL bozmuyor
   const orderData = {
     no: orderNo, name, phone, note,
-    items: cart.map(item => ({ id: item.id, qty: item.qty, color: item.color || '' }))
+    items: cart.map(item => ({ id: item.id, qty: item.qty, color: item.color || '', price: item.price || null }))
   };
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(orderData))));
   const longUrl = `${SITE_URL}/?s=${encoded}`;
@@ -588,12 +625,16 @@ async function sendWhatsApp() {
   let msg = `🛍 *YENİ SİPARİŞ — ${orderNo}*\n\n`;
   msg += `👤 *${name}*\n📞 ${phone}\n\n`;
   msg += `*Ürünler (${totalQty} kalem):*\n`;
+  let totalPrice = 0;
   cart.forEach((item,i) => {
-    msg += `\n${i+1}. *${item.name}* x${item.qty}\n`;
+    const itemTotal = item.price ? item.price * item.qty : null;
+    if (itemTotal) totalPrice += itemTotal;
+    msg += `\n${i+1}. *${item.name}* x${item.qty}${itemTotal ? ` — ${itemTotal}₺` : ''}\n`;
     if(item.color) msg += `   🎨 ${item.color}\n`;
     msg += `   📂 ${item.subCategory||item.category}\n`;
     msg += `   🖼 https://drive.google.com/file/d/${item.id}/view\n`;
   });
+  if(totalPrice > 0) msg += `\n💰 *Toplam: ${totalPrice}₺*`;
   if(note) msg += `\n📝 ${note}`;
   msg += `\n\n📋 *Görselli sipariş:* ${orderLink}`;
 
