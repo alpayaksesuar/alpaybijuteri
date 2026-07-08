@@ -383,7 +383,13 @@ async function fetchFromDrive(silent) {
 
 // --- KATEGORİLER ---
 function buildCats() {
-  const cats = [...new Set(allProducts.map(p=>p.category))];
+  let cats = [...new Set(allProducts.map(p=>p.category))];
+  // Öne çıkanlar klasörünü en başa al
+  const oneCikanIdx = cats.findIndex(c => c.toLowerCase().includes('ne') && c.toLowerCase().includes('kan') || c.includes('⭐'));
+  if (oneCikanIdx > 0) {
+    const oneCikan = cats.splice(oneCikanIdx, 1)[0];
+    cats.unshift(oneCikan);
+  }
   document.getElementById('catTabs').innerHTML = cats.map((c,i) =>
     `<button class="cat-btn ${i===0?'active':''}" onclick="selectCat('${c}')">${c}</button>`
   ).join('');
