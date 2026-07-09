@@ -122,18 +122,18 @@ header { position:sticky; top:0; z-index:100; background:var(--white); border-bo
 
 
 /* KATEGORİ SEÇİM SAYFASI */
-.cat-select-page { display:none; position:fixed; inset:0; z-index:500; background:var(--black); flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+.cat-select-page { display:none; position:fixed; inset:0; z-index:500; background:var(--white); flex-direction:column; align-items:center; justify-content:center; padding:24px; overflow-y:auto; }
 .cat-select-page.active { display:flex; }
 .cat-select-logo { height:80px; width:auto; margin-bottom:8px; }
-.cat-select-tagline { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:14px; color:rgba(255,255,255,0.5); letter-spacing:2px; margin-bottom:40px; }
-.cat-select-title { font-family:'Cormorant Garamond',serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-bottom:24px; }
+.cat-select-tagline { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:14px; color:var(--gray); letter-spacing:2px; margin-bottom:40px; }
+.cat-select-title { font-family:'Cormorant Garamond',serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:var(--gray); margin-bottom:24px; }
 .cat-select-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; width:100%; max-width:500px; max-height:60vh; overflow-y:auto; scrollbar-width:none; }
 .cat-select-grid::-webkit-scrollbar { display:none; }
-.cat-select-btn { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:white; padding:18px 12px; font-family:'Jost',sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.2s; text-align:center; position:relative; overflow:hidden; }
-.cat-select-btn:hover, .cat-select-btn:active { background:rgba(184,134,11,0.2); border-color:var(--gold); color:var(--gold); }
-.cat-select-btn .cat-count { display:block; font-size:18px; font-family:'Cormorant Garamond',serif; font-style:italic; color:var(--gold); margin-bottom:6px; font-weight:300; letter-spacing:0; }
-.cat-select-all { margin-top:16px; background:none; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.5); padding:12px 32px; font-family:'Jost',sans-serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
-.cat-select-all:hover { border-color:white; color:white; }
+.cat-select-btn { background:var(--white); border:1px solid var(--border); color:var(--black); padding:18px 12px; font-family:'Jost',sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.2s; text-align:center; position:relative; overflow:hidden; }
+.cat-select-btn:hover, .cat-select-btn:active { background:var(--light); border-color:var(--gold); color:var(--gold); }
+.cat-select-btn .cat-count { display:none; }
+.cat-select-all { margin-top:16px; background:none; border:1px solid var(--border); color:var(--gray); padding:12px 32px; font-family:'Jost',sans-serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
+.cat-select-all:hover { border-color:var(--black); color:var(--black); }
 
 /* RENK SEÇİMİ */
 .color-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:400; }
