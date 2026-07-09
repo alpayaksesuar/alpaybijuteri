@@ -511,35 +511,32 @@ function cardQtyChange(id, delta) {
   if (!p) return;
   const colors = parseColors(p.name);
 
-  // Renk seçimi gerekiyorsa modal aç
-  if (colors.length && delta > 0) {
-    quickAdd(id);
-    return;
-  }
-
-  // Sepetteki ürünü bul (renksiz)
-  const cartId = id;
-  const item = cart.find(c => c.cartId === cartId);
-
   if (delta > 0) {
-    if (item) { item.qty++; }
-    else { addToCartDirect(id, null); return; }
-  } else {
-    if (item) {
-      item.qty--;
-      if (item.qty <= 0) { removeItem(cartId); }
+    // Artır - renk varsa seçim aç, yoksa direkt ekle
+    if (colors.length) {
+      quickAdd(id);
+      return;
+    } else {
+      const item = cart.find(c => c.cartId === id);
+      if (item) { item.qty++; updateCartUI(); saveCart(); updateCardQty(id); }
+      else { addToCartDirect(id, null); return; }
     }
+  } else {
+    // Azalt - tüm renklerden son eklenenin adedini azalt
+    const items = cart.filter(c => c.id === id);
+    if (items.length === 0) return;
+    // Son eklenen rengi azalt
+    const last = items[items.length - 1];
+    last.qty--;
+    if (last.qty <= 0) removeItem(last.cartId);
+    else { updateCartUI(); saveCart(); }
+    updateCardQty(id);
   }
-
-  updateCartUI();
-  saveCart();
-  updateCardQty(id);
 }
 
 function updateCardQty(id) {
-  const cartId = id;
-  const item = cart.find(c => c.cartId === cartId);
-  const qty = item ? item.qty : 0;
+  // Aynı ürünün tüm renklerinin toplamını göster
+  const totalQty = cart.filter(c => c.id === id).reduce((s,c) => s + c.qty, 0);
 
   const ctrl = document.getElementById('ctrl_' + id);
   const addBtn = document.getElementById('addbtn_' + id);
@@ -547,10 +544,10 @@ function updateCardQty(id) {
 
   if (!ctrl || !addBtn || !qtyEl) return;
 
-  if (qty > 0) {
+  if (totalQty > 0) {
     ctrl.style.display = 'flex';
     addBtn.style.display = 'none';
-    qtyEl.textContent = qty;
+    qtyEl.textContent = totalQty;
   } else {
     ctrl.style.display = 'none';
     addBtn.style.display = 'block';
