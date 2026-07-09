@@ -15,7 +15,7 @@ body { font-family:'Jost',sans-serif; font-weight:300; background:var(--white); 
 
 header { position:sticky; top:0; z-index:100; background:var(--white); border-bottom:1px solid var(--border); padding:10px 16px; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:8px; }
 .header-center { display:flex; flex-direction:column; align-items:center; justify-content:center; }
-.logo-img { height:52px; width:auto; max-width:140px; }
+.logo-img { height:70px; width:auto; max-width:160px; }
 .header-tagline { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:11px; color:var(--gray); letter-spacing:1.5px; margin-top:2px; }
 .header-left { display:flex; align-items:center; gap:4px; }
 .header-right { display:flex; align-items:center; gap:4px; }
@@ -26,9 +26,9 @@ header { position:sticky; top:0; z-index:100; background:var(--white); border-bo
 .search-bar.active { display:block; }
 .search-bar input { width:100%; border:1px solid var(--border); padding:8px 12px; font-family:'Jost',sans-serif; font-size:14px; outline:none; background:var(--light); }
 
-.cat-row { display:flex; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--border); justify-content:center; }
+.cat-row { display:flex; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--border); scroll-behavior:smooth; -webkit-overflow-scrolling:touch; }
 .cat-row::-webkit-scrollbar { display:none; }
-.sub-row { display:none; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--border); background:var(--light); justify-content:center; }
+.sub-row { display:none; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--border); background:var(--light); }
 .sub-row.active { display:flex; }
 .sub-row::-webkit-scrollbar { display:none; }
 .cat-btn { flex-shrink:0; padding:10px 16px; border:none; background:none; cursor:pointer; font-family:'Jost',sans-serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); border-bottom:2px solid transparent; white-space:nowrap; transition:all 0.2s; }
@@ -118,6 +118,21 @@ header { position:sticky; top:0; z-index:100; background:var(--white); border-bo
 .install-btn { background:var(--gold); color:white; border:none; padding:8px 16px; font-family:'Jost',sans-serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; white-space:nowrap; }
 .install-close { background:none; border:none; color:var(--gray); font-size:18px; cursor:pointer; margin-left:auto; }
 
+
+/* KATEGORİ SEÇİM SAYFASI */
+.cat-select-page { display:none; position:fixed; inset:0; z-index:500; background:var(--black); flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+.cat-select-page.active { display:flex; }
+.cat-select-logo { height:80px; width:auto; margin-bottom:8px; }
+.cat-select-tagline { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:14px; color:rgba(255,255,255,0.5); letter-spacing:2px; margin-bottom:40px; }
+.cat-select-title { font-family:'Cormorant Garamond',serif; font-size:13px; letter-spacing:3px; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-bottom:24px; }
+.cat-select-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; width:100%; max-width:500px; max-height:60vh; overflow-y:auto; scrollbar-width:none; }
+.cat-select-grid::-webkit-scrollbar { display:none; }
+.cat-select-btn { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:white; padding:18px 12px; font-family:'Jost',sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.2s; text-align:center; position:relative; overflow:hidden; }
+.cat-select-btn:hover, .cat-select-btn:active { background:rgba(184,134,11,0.2); border-color:var(--gold); color:var(--gold); }
+.cat-select-btn .cat-count { display:block; font-size:18px; font-family:'Cormorant Garamond',serif; font-style:italic; color:var(--gold); margin-bottom:6px; font-weight:300; letter-spacing:0; }
+.cat-select-all { margin-top:16px; background:none; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.5); padding:12px 32px; font-family:'Jost',sans-serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
+.cat-select-all:hover { border-color:white; color:white; }
+
 /* RENK SEÇİMİ */
 .color-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:400; }
 .color-overlay.active { display:block; }
@@ -152,7 +167,7 @@ header { position:sticky; top:0; z-index:100; background:var(--white); border-bo
       <div class="header-tagline">Alpay Bijuteri &nbsp;|&nbsp; pretty accessory</div>
     </div>
     <div class="header-right">
-      <button class="cart-btn" onclick="openCart()"><div style="display:flex;flex-direction:column;align-items:center;gap:1px"><span>🛍<span class="cart-count" id="cartCount">0</span></span><span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;font-family:'Jost',sans-serif;color:var(--black);">Sepetim</span></div></button>
+      <button class="cart-btn" onclick="openCart()"><div style="display:flex;flex-direction:column;align-items:center;gap:1px"><span>🛍<span class="cart-count" id="cartCount">0</span></span><span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;font-family:'Jost',sans-serif;color:var(--black);">Sepetim</span><span id="headerTotal" style="font-size:10px;color:var(--gold);font-family:'Jost',sans-serif;display:none;"></span></div></button>
     </div>
   </header>
   <div class="search-bar" id="searchBar">
@@ -229,7 +244,7 @@ header { position:sticky; top:0; z-index:100; background:var(--white); border-bo
   <div class="color-modal-title" id="colorModalTitle"></div>
   <div class="color-modal-sub">Renk seçin</div>
   <div class="color-options" id="colorOptions"></div>
-  <button class="color-confirm" id="colorConfirm" onclick="confirmColor()" disabled>Sepete Ekle</button>
+  <button class="color-confirm" id="colorConfirm" onclick="confirmColor()" disabled style="display:none">Sepete Ekle</button>
 </div>
 
 <script>
@@ -325,23 +340,7 @@ async function fetchImages(id) {
 }
 function thumb(id, w=400) { return `https://lh3.googleusercontent.com/d/${id}=w${w}`; }
 
-const CACHE_KEY = 'alpay_products_v1';
-const CACHE_TTL = 60 * 60 * 1000; // 1 saat
-
 async function loadDrive() {
-  try {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (cached) {
-      const { data, ts } = JSON.parse(cached);
-      if (Date.now() - ts < CACHE_TTL && data.length) {
-        allProducts = data;
-        buildCats();
-        renderProducts();
-        fetchFromDrive(true);
-        return;
-      }
-    }
-  } catch(e) {}
   await fetchFromDrive(false);
 }
 
@@ -353,13 +352,11 @@ async function fetchFromDrive(silent) {
     async function scanFolder(folderId, category, subCategory) {
       const subs = await fetchFolders(folderId);
       if (subs.length) {
-        // Alt klasörler var - her birini tara
         const results = await Promise.all(subs.map(sub =>
-          scanFolder(sub.id, category, subCategory || sub.name)
+          scanFolder(sub.id, category, sub.name)
         ));
         return results.flat();
       } else {
-        // Resimler var
         const imgs = await fetchImages(folderId);
         return imgs.map(img => ({
           id: img.id,
@@ -374,8 +371,16 @@ async function fetchFromDrive(silent) {
 
     const results = await Promise.all(topFolders.map(folder => scanFolder(folder.id, folder.name, null)));
     allProducts = results.flat();
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data: allProducts, ts: Date.now() })); } catch(e) {}
-    if (!silent) { buildCats(); renderProducts(); }
+    if (!silent) {
+      buildCats();
+      const firstCat = allProducts.find(p => p.category.includes('⭐') || p.category.toLowerCase().includes('çıkan'))?.category || allProducts[0]?.category || '';
+      currentCategory = firstCat;
+      buildSubCats(firstCat);
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      [...document.querySelectorAll('.cat-btn')].find(b => b.textContent === firstCat)?.classList.add('active');
+      renderProducts();
+      showCatSelect();
+    }
   } catch(e) {
     if (!silent) document.getElementById('productGrid').innerHTML = `<div class="loading">Yüklenemedi: ${e.message}</div>`;
   }
@@ -407,7 +412,8 @@ function buildSubCats(cat) {
 function selectCat(cat) {
   currentCategory=cat; currentSubCategory=null;
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
-  [...document.querySelectorAll('.cat-btn')].find(b=>b.textContent===cat)?.classList.add('active');
+  const activeBtn = [...document.querySelectorAll('.cat-btn')].find(b=>b.textContent===cat);
+  if(activeBtn) { activeBtn.classList.add('active'); activeBtn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}); }
   buildSubCats(cat);
   document.getElementById('searchInput').value='';
   renderProducts();
@@ -438,7 +444,7 @@ function renderProducts() {
     <div class="product-card" onclick="openLightbox('${p.id}')">
       <div class="product-img-wrap">
         <img src="${p.thumb}" alt="${p.name}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22%3E%3Crect fill=%22%23f0eeeb%22 width=%22400%22 height=%22400%22/%3E%3C/svg%3E'">
-        <button class="add-to-cart-btn" onclick="event.stopPropagation();addToCart('${p.id}')">+ Sepete Ekle</button>
+        <button class="add-to-cart-btn" onclick="event.stopPropagation();quickAdd('${p.id}')">+ Sepete Ekle</button>
       </div>
       <div class="product-info">
         <div class="product-name">${cleanName(p.name)}</div>
@@ -470,7 +476,19 @@ function openLightbox(id) {
 }
 function closeLightbox() { document.getElementById('lightbox').classList.remove('active'); }
 function closeLightboxBg(e) { if(e.target===document.getElementById('lightbox')) closeLightbox(); }
-function lbAdd() { if(currentLbId) { addToCart(currentLbId); closeLightbox(); } }
+function lbAdd() { if(currentLbId) { closeLightbox(); quickAdd(currentLbId); } }
+
+// --- HIZLI EKLE ---
+function quickAdd(id) {
+  const p = allProducts.find(x => x.id === id);
+  if (!p) return;
+  const colors = parseColors(p.name);
+  if (colors.length) {
+    openColorModal(id);
+  } else {
+    addToCartDirect(id, null);
+  }
+}
 
 // --- RENK SEÇİMİ ---
 let pendingProductId = null;
@@ -516,7 +534,11 @@ function selectColor(color, btn) {
   selectedColor = color;
   document.querySelectorAll('.color-opt').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
-  document.getElementById('colorConfirm').disabled = false;
+  // Seçince otomatik sepete ekle
+  setTimeout(() => {
+    addToCartDirect(pendingProductId, selectedColor);
+    closeColorModal();
+  }, 150);
 }
 
 function confirmColor() {
@@ -560,11 +582,15 @@ function updateCartUI() {
   const totalPrice = cart.reduce((s,c) => s + (c.price ? c.price * c.qty : 0), 0);
   const totalEl = document.getElementById('cartTotal');
   const totalAmountEl = document.getElementById('cartTotalAmount');
+  const headerTotal = document.getElementById('headerTotal');
   if (totalPrice > 0) {
     totalEl.style.display = 'flex';
     totalAmountEl.textContent = totalPrice.toFixed(0) + '₺';
+    headerTotal.style.display = 'block';
+    headerTotal.textContent = totalPrice.toFixed(0) + '₺';
   } else {
     totalEl.style.display = 'none';
+    headerTotal.style.display = 'none';
   }
 
   el.innerHTML=cart.map(item=>`
@@ -669,7 +695,6 @@ async function refreshProducts() {
   const btn = document.querySelector('.refresh-btn');
   btn.style.animation = 'spin 0.8s linear infinite';
   btn.disabled = true;
-  try { localStorage.removeItem(CACHE_KEY); } catch(e) {}
   document.getElementById('productGrid').innerHTML = '<div class="loading"><div class="spinner"></div>Yenileniyor...</div>';
   document.getElementById('catTabs').innerHTML = '';
   document.getElementById('subTabs').innerHTML = '';
@@ -679,6 +704,41 @@ async function refreshProducts() {
   await fetchFromDrive(false);
   btn.style.animation = '';
   btn.disabled = false;
+}
+
+
+// --- KATEGORİ SEÇİM SAYFASI ---
+function showCatSelect() {
+  const cats = [...new Set(allProducts.map(p => p.category))];
+  // Öne çıkanları en başa al
+  const sorted = cats.sort((a,b) => {
+    if (a.includes('⭐') || a.toLowerCase().includes('çıkan')) return -1;
+    if (b.includes('⭐') || b.toLowerCase().includes('çıkan')) return 1;
+    return 0;
+  });
+
+  document.getElementById('catSelectGrid').innerHTML = sorted.map(cat => {
+    const count = allProducts.filter(p => p.category === cat).length;
+    const label = cat.replace('⭐ ', '');
+    return `<button class="cat-select-btn" onclick="closeCatSelect('${cat}')">
+      <span class="cat-count">${count}</span>
+      ${label}
+    </button>`;
+  }).join('');
+
+  document.getElementById('catSelectPage').classList.add('active');
+}
+
+function closeCatSelect(cat) {
+  document.getElementById('catSelectPage').classList.remove('active');
+  if (cat) {
+    selectCat(cat);
+  } else {
+    // Tümünü gör - öne çıkanları göster
+    const firstCat = allProducts.find(p => p.category.includes('⭐') || p.category.toLowerCase().includes('çıkan'))?.category || allProducts[0]?.category || '';
+    if (firstCat) selectCat(firstCat);
+    else renderProducts();
+  }
 }
 
 // --- INIT ---
