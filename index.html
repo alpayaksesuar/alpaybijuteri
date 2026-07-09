@@ -47,9 +47,13 @@ header { position:sticky; top:0; z-index:100; background:var(--white); border-bo
 .product-img-wrap { position:relative; aspect-ratio:1; background:var(--light); overflow:hidden; }
 .product-img-wrap img { width:100%; height:100%; object-fit:cover; transition:transform 0.4s; }
 .product-card:hover .product-img-wrap img { transform:scale(1.04); }
-.add-to-cart-btn { position:absolute; bottom:0; left:0; right:0; background:rgba(26,26,26,0.85); color:white; border:none; padding:10px; font-family:'Jost',sans-serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; opacity:0; transition:opacity 0.2s; }
-.product-card:hover .add-to-cart-btn { opacity:1; }
-@media(hover:none){ .add-to-cart-btn { opacity:1; } }
+.card-actions { position:absolute; bottom:0; left:0; right:0; display:flex; flex-direction:column; }
+.card-add-btn { width:100%; background:rgba(26,26,26,0.85); color:white; border:none; padding:10px; font-family:'Jost',sans-serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; opacity:0; transition:opacity 0.2s; }
+.product-card:hover .card-add-btn { opacity:1; }
+@media(hover:none){ .card-add-btn { opacity:1; } }
+.card-qty-ctrl { display:flex; align-items:center; justify-content:space-between; background:rgba(26,26,26,0.9); padding:6px 12px; }
+.card-qty-btn { background:none; border:1px solid rgba(255,255,255,0.4); color:white; width:28px; height:28px; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:2px; }
+.card-qty-num { color:white; font-size:16px; font-family:'Cormorant Garamond',serif; min-width:24px; text-align:center; }
 .product-info { padding:6px 4px 8px; min-width:0; }
 .product-name { font-size:11px; color:var(--black); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
 .product-cat { font-size:9px; color:var(--gray); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -455,11 +459,19 @@ function renderProducts() {
   const label = currentSubCategory||(currentCategory==='Tümü'?'Tüm Ürünler':currentCategory);
   document.getElementById('sectionTitle').textContent = `${label} — ${list.length} ürün`;
   if (!list.length) { document.getElementById('productGrid').innerHTML='<div class="loading">Ürün bulunamadı</div>'; return; }
+  // Render sonrası kartları güncelle
   document.getElementById('productGrid').innerHTML = list.map(p => `
     <div class="product-card" onclick="openLightbox('${p.id}')">
       <div class="product-img-wrap">
         <img src="${p.thumb}" alt="${p.name}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22%3E%3Crect fill=%22%23f0eeeb%22 width=%22400%22 height=%22400%22/%3E%3C/svg%3E'">
-        <button class="add-to-cart-btn" onclick="event.stopPropagation();quickAdd('${p.id}')">+ Sepete Ekle</button>
+        <div class="card-actions" onclick="event.stopPropagation()">
+          <div class="card-qty-ctrl" id="ctrl_${p.id}" style="display:none;">
+            <button class="card-qty-btn" onclick="cardQtyChange('${p.id}',-1)">−</button>
+            <span class="card-qty-num" id="qty_${p.id}">0</span>
+            <button class="card-qty-btn" onclick="cardQtyChange('${p.id}',1)">+</button>
+          </div>
+          <button class="card-add-btn" id="addbtn_${p.id}" onclick="quickAdd('${p.id}')">+ Sepete Ekle</button>
+        </div>
       </div>
       <div class="product-info">
         <div class="product-name">${cleanName(p.name)}</div>
@@ -492,6 +504,62 @@ function openLightbox(id) {
 function closeLightbox() { document.getElementById('lightbox').classList.remove('active'); }
 function closeLightboxBg(e) { if(e.target===document.getElementById('lightbox')) closeLightbox(); }
 function lbAdd() { if(currentLbId) { closeLightbox(); quickAdd(currentLbId); } }
+
+// --- KART ADET KONTROLÜ ---
+function cardQtyChange(id, delta) {
+  const p = allProducts.find(x => x.id === id);
+  if (!p) return;
+  const colors = parseColors(p.name);
+
+  // Renk seçimi gerekiyorsa modal aç
+  if (colors.length && delta > 0) {
+    quickAdd(id);
+    return;
+  }
+
+  // Sepetteki ürünü bul (renksiz)
+  const cartId = id;
+  const item = cart.find(c => c.cartId === cartId);
+
+  if (delta > 0) {
+    if (item) { item.qty++; }
+    else { addToCartDirect(id, null); return; }
+  } else {
+    if (item) {
+      item.qty--;
+      if (item.qty <= 0) { removeItem(cartId); }
+    }
+  }
+
+  updateCartUI();
+  saveCart();
+  updateCardQty(id);
+}
+
+function updateCardQty(id) {
+  const cartId = id;
+  const item = cart.find(c => c.cartId === cartId);
+  const qty = item ? item.qty : 0;
+
+  const ctrl = document.getElementById('ctrl_' + id);
+  const addBtn = document.getElementById('addbtn_' + id);
+  const qtyEl = document.getElementById('qty_' + id);
+
+  if (!ctrl || !addBtn || !qtyEl) return;
+
+  if (qty > 0) {
+    ctrl.style.display = 'flex';
+    addBtn.style.display = 'none';
+    qtyEl.textContent = qty;
+  } else {
+    ctrl.style.display = 'none';
+    addBtn.style.display = 'block';
+  }
+}
+
+function updateAllCardQtys() {
+  allProducts.forEach(p => updateCardQty(p.id));
+}
 
 // --- HIZLI EKLE ---
 function quickAdd(id) {
@@ -585,6 +653,7 @@ function addToCartDirect(id, color) {
   else cart.push({ ...p, cartId, name: displayName, color, price, qty: 1 });
   updateCartUI();
   saveCart();
+  updateCardQty(id);
 }
 
 function updateCartUI() {
